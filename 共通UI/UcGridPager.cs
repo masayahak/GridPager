@@ -29,16 +29,12 @@ namespace 共通UI
         public void SetFullDatasource<T>(List<T> list)
         {
             fullDataSource = list.Cast<Object>().ToList();
-            MaxRowCount = fullDataSource.Count;
+            SetMaxRowCount(fullDataSource.Count);
         }
 
-        // -------------------------------------------------------
-        // 公開プロパティ
-        // -------------------------------------------------------
-
-        private int rowsInPage = 100;
+        private int rowsInPage = 1000;
         /// <summary>
-        /// １ページに何行表示するか。デフォルト100行／ページ
+        /// １ページに何行表示するか。デフォルト1000行／ページ
         /// </summary>
         public int RowsInPage
         {
@@ -49,47 +45,43 @@ namespace 共通UI
             }
         }
 
-        // 現在表示している行範囲の先頭
-        private int currentCount;
-        private int CurrentCount
-        {
-            get { return currentCount; }
-            set
-            {
-                currentCount = value;
-
-                int end;
-                if (value + RowsInPage < maxRowCount)
-                    end = value + RowsInPage - 1;
-                else
-                    end = maxRowCount;
-
-                if (maxRowCount == 0)
-                {
-                    this.lblCurrentCount.Text = "0";
-                }
-                else
-                {
-                    this.lblCurrentCount.Text = value.ToString() + "～" + end.ToString();
-                }
-
-                // ボタン制御
-                SwitchButtonEnabled();
-            }
-        }
-
+        // -------------------------------------------------------
+        // プロパティ
+        // -------------------------------------------------------
         // 一覧に表示するリストの最大行数
         private int maxRowCount;
-        private int MaxRowCount
+        private void SetMaxRowCount(int value)
         {
-            set
-            {
-                maxRowCount = value;
-                this.lblMaxCount.Text = maxRowCount.ToString();
+            maxRowCount = value;
+            this.lblMaxCount.Text = maxRowCount.ToString();
 
-                // 件数が変わった＝初期化された。
-                CurrentCount = 1;
+            // 件数が変わった＝初期化された。
+            SetCurrentCount(1);
+        }
+
+        // 現在表示している行範囲の先頭
+        private int currentCount;
+        private void SetCurrentCount(int value)
+        {
+            currentCount = value;
+
+            int end;
+            if (value + RowsInPage < maxRowCount)
+                end = value + RowsInPage - 1;
+            else
+                end = maxRowCount;
+
+            if (maxRowCount == 0)
+            {
+                this.lblCurrentCount.Text = "0";
             }
+            else
+            {
+                this.lblCurrentCount.Text = value.ToString() + "～" + end.ToString();
+            }
+
+            // ボタン制御
+            SwitchButtonEnabled();
         }
 
         // -------------------------------------------------------------
@@ -112,13 +104,13 @@ namespace 共通UI
                 return;
             }
 
-            if (CurrentCount == 1)
+            if (currentCount == 1)
             {
                 this.btnFirst.Enabled = false;
                 this.btnBack.Enabled = false;
             }
 
-            if (CurrentCount + RowsInPage > maxRowCount)
+            if (currentCount + RowsInPage > maxRowCount)
             {
                 this.btnNext.Enabled = false;
                 this.btnLast.Enabled = false;
@@ -148,7 +140,7 @@ namespace 共通UI
         public UcGridPager()
         {
             InitializeComponent();
-            MaxRowCount = 0;
+            SetMaxRowCount(0);
 
             // DataGirdViewのTypeを取得
             Type dgvtype = typeof(DataGridView);
@@ -168,47 +160,67 @@ namespace 共通UI
         {
             if (fullDataSource == null) return;
 
+            // 計測対象の処理
             var list = fullDataSource
-                .Skip(CurrentCount - 1)
+                .Skip(currentCount - 1)
                 .Take(RowsInPage)
                 .ToList()
                 ;
 
-            bindingSource.DataSource = list;
-            dataGridView.DataSource = bindingSource;
+            // バインドデータを更新する間、レイアウトの描画を停止
+            try
+            {
 
-            // ０行だと書式設定できない
-            if (list.Count == 0) return;
+                // バインド前に高速化のためにグリッドの描画を一旦止める
+                dataGridView.SuspendLayout();
+                dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
-            SetDgvFormat();
+                // バインド
+                BindingSource bs = new BindingSource();
+                bs.DataSource = list;
+                dataGridView.DataSource = bs;   
+            }
+            finally
+            {
+                // ０行だと書式設定できない
+                if (list.Count > 0)
+                {
+                    // 書式設定
+                    SetDgvFormat();
+
+                }
+                // グリッドの描画再開
+                dataGridView.ResumeLayout();
+            }
 
         }
 
         private void btnFirst_Click(object sender, EventArgs e)
         {
-            CurrentCount = 1;
+            SetCurrentCount(1);
             ShowPage();
         }
 
         private void btnBack_Click(object sender, EventArgs e)
         {
-            CurrentCount -= RowsInPage;
+            SetCurrentCount(currentCount - RowsInPage);
             ShowPage();
         }
 
         private void btnNext_Click(object sender, EventArgs e)
         {
-            CurrentCount += RowsInPage;
+            SetCurrentCount(currentCount + RowsInPage);
             ShowPage();
         }
 
         private void btnLast_Click(object sender, EventArgs e)
         {
-            while (CurrentCount < maxRowCount)
+            
+            while (currentCount < maxRowCount)
             {
-                CurrentCount += RowsInPage;
+                SetCurrentCount(currentCount + RowsInPage);
             }
-            CurrentCount -= RowsInPage;
+            SetCurrentCount(currentCount - RowsInPage);
 
             ShowPage();
         }
@@ -216,8 +228,12 @@ namespace 共通UI
         // ----------------------------------------------------------------
         // グリッドの書式
         // ----------------------------------------------------------------
+        private bool IsFormatted = false;
+
         private void SetDgvFormat()
         {
+            if (IsFormatted) return;
+
             // 列幅の設定:
             foreach (DataGridViewColumn column in dataGridView.Columns)
             {
@@ -232,9 +248,10 @@ namespace 共通UI
                     column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 }
             }
-
             // 実装側で追加の書式設定
             OnGridFormat();
+
+            IsFormatted = true;
         }
 
         // ----------------------------------------------------------------

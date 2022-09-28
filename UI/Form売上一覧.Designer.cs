@@ -32,7 +32,7 @@
             this.dtp終了 = new System.Windows.Forms.DateTimePicker();
             this.btn検索 = new System.Windows.Forms.Button();
             this.ucGridPager = new 共通UI.UcGridPager();
-            this.ucロード中 = new テストDB.共通UI.Ucロード中();
+            this.ucロード中 = new 共通UI.Ucロード中();
             this.SuspendLayout();
             // 
             // dtp開始
@@ -73,7 +73,6 @@
             this.ucGridPager.RowsInPage = 100;
             this.ucGridPager.Size = new System.Drawing.Size(974, 631);
             this.ucGridPager.TabIndex = 0;
-            this.ucGridPager.SizeChanged += new System.EventHandler(this.ucGridPager_SizeChanged);
             // 
             // ucロード中
             // 
@@ -98,6 +97,8 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "売上一覧";
             this.Load += new System.EventHandler(this.Form売上一覧_Load);
+            this.ResizeEnd += new System.EventHandler(this.Form_ResizedEnd);
+            this.SizeChanged += new System.EventHandler(this.Form_SizeChanged);
             this.ResumeLayout(false);
 
         }
@@ -108,7 +109,7 @@
         private System.Windows.Forms.DateTimePicker dtp開始;
         private System.Windows.Forms.DateTimePicker dtp終了;
         private System.Windows.Forms.Button btn検索;
-        private テストDB.共通UI.Ucロード中 ucロード中;
+        private 共通UI.Ucロード中 ucロード中;
     }
 }
 
