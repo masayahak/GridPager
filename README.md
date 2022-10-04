@@ -3,7 +3,13 @@
 【機能概要】
 
 １．DataGridViewをページング可能にする。
+
 ２．DataGridViewの表示内容をEXCELへ転送する。
+
+３．DataGridViewの幅に応じて付加情報列の表示／非表示を自動的に切り替える。
+
+
+
 
 【画面イメージ】
 ![1](https://user-images.githubusercontent.com/96961556/193948385-dfdc24d9-6dc5-4e67-880b-3069b9e3f5a6.png)
