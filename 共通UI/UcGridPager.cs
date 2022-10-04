@@ -26,15 +26,15 @@ namespace 共通UI
         // こちらに全ページ分のDataSourceをセット
         private List<Object> fullDataSource;
 
-        public void SetFullDatasource<T>(List<T> list)
+        public void SetFullDatasource(List<Object> list)
         {
-            fullDataSource = list.Cast<Object>().ToList();
+            fullDataSource = list;
             SetMaxRowCount(fullDataSource.Count);
         }
 
-        private int rowsInPage = 1000;
+        private int rowsInPage = 10000;
         /// <summary>
-        /// １ページに何行表示するか。デフォルト1000行／ページ
+        /// １ページに何行表示するか。デフォルト10000行／ページ
         /// </summary>
         public int RowsInPage
         {
@@ -131,7 +131,7 @@ namespace 共通UI
 
         public class OnGridDoubleClickArgs : EventArgs
         {
-            public object Row;
+            public object[] RowItems;
         }
 
         // -------------------------------------------------------
@@ -140,17 +140,29 @@ namespace 共通UI
         public UcGridPager()
         {
             InitializeComponent();
+
             SetMaxRowCount(0);
 
-            // DataGirdViewのTypeを取得
+            // DataGirdViewのパフォーマンス・チューニング
+            InitDataGridView();
+        }
+
+        // DataGirdViewのパフォーマンス・チューニング
+        private void InitDataGridView()
+        {
+            // DoubleBuffered
             Type dgvtype = typeof(DataGridView);
-            // プロパティ設定の取得
-            System.Reflection.PropertyInfo dgvPropertyInfo = 
+            System.Reflection.PropertyInfo dgvPropertyInfo =
                 dgvtype.GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance
                 | System.Reflection.BindingFlags.NonPublic);
-            // 対象のDataGridViewにtrueをセットする
             dgvPropertyInfo.SetValue(dataGridView, true, null);
 
+            // AutoSize None
+            dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            dataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+
+            // RowHeader false
+            dataGridView.RowHeadersVisible = false;
         }
 
         // -------------------------------------------------------
@@ -173,7 +185,6 @@ namespace 共通UI
 
                 // バインド前に高速化のためにグリッドの描画を一旦止める
                 dataGridView.SuspendLayout();
-                dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
                 // バインド
                 BindingSource bs = new BindingSource();
@@ -228,12 +239,8 @@ namespace 共通UI
         // ----------------------------------------------------------------
         // グリッドの書式
         // ----------------------------------------------------------------
-        private bool IsFormatted = false;
-
         private void SetDgvFormat()
         {
-            if (IsFormatted) return;
-
             // 列幅の設定:
             foreach (DataGridViewColumn column in dataGridView.Columns)
             {
@@ -242,16 +249,16 @@ namespace 共通UI
                 if (column.ValueType == typeof(int))
                 {
                     column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                    column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
                 }
                 if (column.ValueType == typeof(DateTime))
                 {
                     column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 }
             }
             // 実装側で追加の書式設定
             OnGridFormat();
-
-            IsFormatted = true;
         }
 
         // ----------------------------------------------------------------
@@ -261,10 +268,19 @@ namespace 共通UI
         {
             try
             {
-                var row = dataGridView.Rows[e.RowIndex].DataBoundItem;
+                var row = dataGridView.Rows[e.RowIndex];
+                var cols = row.Cells.Count;
+
+                Object[] rowItems = new object[cols];
+
+                for (int i = 0; i < cols; i++)
+                {
+                    rowItems[i] = row.Cells[i].Value;
+                }
+
                 var arg = new OnGridDoubleClickArgs()
                 {
-                    Row = row
+                    RowItems = rowItems
                 };
 
                 // 実装側で追加のダブルクリックイベント
@@ -288,7 +304,7 @@ namespace 共通UI
             await Task.Run(() =>
             {
                 // 非同期処理
-                var gridToExcel = new GridToExcel(dataGridView, fullDataSource);
+                var gridToExcel = new GridToExcel(dataGridView);
                 gridToExcel.SendToExcel();
             });
 
@@ -381,5 +397,6 @@ namespace 共通UI
                 dataGridView.FirstDisplayedScrollingRowIndex = row;
             }
         }
+
     }
 }

@@ -31,8 +31,8 @@
             this.dtp開始 = new System.Windows.Forms.DateTimePicker();
             this.dtp終了 = new System.Windows.Forms.DateTimePicker();
             this.btn検索 = new System.Windows.Forms.Button();
-            this.ucGridPager = new 共通UI.UcGridPager();
             this.ucロード中 = new 共通UI.Ucロード中();
+            this.ucGridPager = new 共通UI.UcGridPager();
             this.SuspendLayout();
             // 
             // dtp開始
@@ -63,17 +63,6 @@
             this.btn検索.UseVisualStyleBackColor = true;
             this.btn検索.Click += new System.EventHandler(this.btn検索_Click);
             // 
-            // ucGridPager
-            // 
-            this.ucGridPager.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ucGridPager.Location = new System.Drawing.Point(-2, 82);
-            this.ucGridPager.Name = "ucGridPager";
-            this.ucGridPager.RowsInPage = 100;
-            this.ucGridPager.Size = new System.Drawing.Size(974, 631);
-            this.ucGridPager.TabIndex = 0;
-            // 
             // ucロード中
             // 
             this.ucロード中.BackColor = System.Drawing.Color.Black;
@@ -82,22 +71,32 @@
             this.ucロード中.Size = new System.Drawing.Size(340, 125);
             this.ucロード中.TabIndex = 4;
             // 
+            // ucGridPager
+            // 
+            this.ucGridPager.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ucGridPager.Location = new System.Drawing.Point(0, 82);
+            this.ucGridPager.Name = "ucGridPager";
+            this.ucGridPager.RowsInPage = 100;
+            this.ucGridPager.Size = new System.Drawing.Size(975, 631);
+            this.ucGridPager.TabIndex = 0;
+            // 
             // Form売上一覧
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(47)))), ((int)(((byte)(87)))));
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(91)))), ((int)(((byte)(108)))));
             this.ClientSize = new System.Drawing.Size(971, 713);
             this.Controls.Add(this.btn検索);
             this.Controls.Add(this.dtp終了);
             this.Controls.Add(this.dtp開始);
-            this.Controls.Add(this.ucGridPager);
             this.Controls.Add(this.ucロード中);
+            this.Controls.Add(this.ucGridPager);
             this.Name = "Form売上一覧";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "売上一覧";
             this.Load += new System.EventHandler(this.Form売上一覧_Load);
-            this.ResizeEnd += new System.EventHandler(this.Form_ResizedEnd);
             this.SizeChanged += new System.EventHandler(this.Form_SizeChanged);
             this.ResumeLayout(false);
 

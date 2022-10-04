@@ -76,6 +76,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UI\Formテスト.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Formテスト.Designer.cs">
+      <DependentUpon>Formテスト.cs</DependentUpon>
+    </Compile>
     <Compile Include="共通UI\GridToExcel.cs" />
     <Compile Include="Models\MyDbContext.cs" />
     <Compile Include="Models\T売上.cs" />
@@ -116,6 +122,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="UI\Formテスト.resx">
+      <DependentUpon>Formテスト.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\Form売上一覧.resx">
       <DependentUpon>Form売上一覧.cs</DependentUpon>
     </EmbeddedResource>

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GridPager
@@ -16,7 +13,16 @@ namespace GridPager
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form売上一覧());
+
+            bool テスト = false;
+            if(テスト)
+            {
+                Application.Run(new Formテスト());
+            }
+            else
+            {
+                Application.Run(new Form売上一覧());
+            }
         }
     }
 }

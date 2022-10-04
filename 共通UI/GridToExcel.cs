@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -10,13 +11,18 @@ namespace 共通UI
 {
     internal class GridToExcel
     {
-        private DataGridView dataGridView;
-        private List<Object> fullDataSource;
 
-        public GridToExcel(DataGridView dataGridView, List<Object> fullDataSource)
+        // -----------------------------------------------------
+        // コンストラクタ
+        // -----------------------------------------------------
+        private DataGridView dataGridView;
+
+        /// <summary>
+        /// DataGridViewからExcelへ転送する。
+        /// </summary>
+        public GridToExcel(DataGridView dataGridView)
         {
             this.dataGridView = dataGridView;
-            this.fullDataSource = fullDataSource;
         }
 
         // -----------------------------------------------------
@@ -69,7 +75,7 @@ namespace 共通UI
                 Marshal.ReleaseComObject(exCurrentBooks);
                 exCurrentBooks = null;
 
-                // アプリケーションの終了前にガベージ コレクトを強制。
+                // EXCELオブジェクトのガベージ コレクトを強制。
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
@@ -83,9 +89,7 @@ namespace 共通UI
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
             }
-
         }
-
 
         // -----------------------------------------------------
         // ヘッダー
@@ -116,35 +120,41 @@ namespace 共通UI
         //  ・大量データをEXCELへ転送する可能性があるので、
         //  　１セルずつちまちま転送していては遅い。
         //  　２次元配列へデータを加工し、まとめて１回で転送する。
-        //  ・リソースはdataGridViewだけにしたいが、グリッドには
-        //  　全件のデータは無い。表示中のページのみ。
-        //  　なので、DataSourceは必須。
+        //
         // -----------------------------------------------------
         private void SetExcelList(Excel.Worksheet CurrentSheet)
         {
-            int rows = fullDataSource.Count;
-            int cols = dataGridView.Columns.Count;
+            // dataGridViewからデータソースを取得する。
+            BindingSource bs = (BindingSource)dataGridView.DataSource;
+            var fullDataSource = (List<Object>)bs.DataSource;
 
+            // 行数
+            int rows = fullDataSource.Count;
+
+            // 0行ならなにもしない
+            if (rows == 0) return;
+
+            // 列数
+            IList<PropertyInfo> props = new List<PropertyInfo>(
+                fullDataSource[0].GetType().GetProperties());
+            int cols = props.Count;
+
+            // 一回で転送するための２次元オブジェクト
             object[,] ListToExcel = new object[rows, cols];
 
-
-            Type myType = fullDataSource[0].GetType();
-            IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
-
             int row = 0;
-            foreach (object ds in fullDataSource)
+            foreach (object rowItem in fullDataSource)
             {
                 int col = 0;
-
                 foreach (PropertyInfo prop in props)
                 {
-                    object propValue = prop.GetValue(ds, null);
-                    ListToExcel[row, col] = propValue;
+                    ListToExcel[row, col] = prop.GetValue(rowItem, null);
                     col++;
                 }
                 row++;
             }
 
+            // 出力先を指定して転送
             Excel.Range range = CurrentSheet.Cells[2, 1];
             range = range.get_Resize(rows, cols);
             range.Value = ListToExcel;
@@ -156,36 +166,48 @@ namespace 共通UI
         private void SetExcelFormat(Excel.Worksheet CurrentSheet)
         {
 
-            int cols = dataGridView.Columns.Count;
-
-            Excel.Range range = CurrentSheet.UsedRange;
-            range.NumberFormatLocal = "0";
-
-            // Z列を超える一覧は想定しない
-            if (cols > 26)
-            {
-                throw new Exception("列数が多すぎる。EXCELへの転送は26列までしか想定していない。");
-            }
-
-            int c = 0;
-
+            int col = 0;
             foreach (DataGridViewColumn column in dataGridView.Columns)
             {
-                char currentLetter = (char)(c + 65);
+                string currentLetter = IntToChars(col);
 
-                if (column.DefaultCellStyle.Format == "MM/dd")
-                {
-                    Excel.Range range1 = CurrentSheet.get_Range(currentLetter + ":" + currentLetter);
-                    range1.NumberFormatLocal = "yyyy/MM/dd";
-                }
+                Excel.Range range = CurrentSheet.get_Range(currentLetter + ":" + currentLetter);
 
-                if (column.DefaultCellStyle.Format == "C")
+                if (column.DefaultCellStyle.Format == "MM/dd" || column.DefaultCellStyle.Format == "yyyy/MM/dd")
                 {
-                    Excel.Range range2 = CurrentSheet.get_Range(currentLetter + ":" + currentLetter);
-                    range2.NumberFormatLocal = "\\ #,##0";
+                    // グリッド上での日付を年月日表示
+                    range.NumberFormatLocal = "yyyy/MM/dd";
                 }
-                c++;
+                else if (column.DefaultCellStyle.Format == "C")
+                {
+                    // グリッド上での通貨を円で表示
+                    range.NumberFormatLocal = "\\ #,##0";
+                }
+                else
+                {
+                    // バーコードの様な長い数字を省略せずに表示する
+                    range.NumberFormatLocal = "0";
+
+                }
+                col++;
             }
         }
+
+        // 列番号の数値をEXCELの列番号（A列とか）へ変換（A列～ZZ列までの範囲）
+        private string IntToChars(int value)
+        {
+            int i上1桁 = (int)Math.Floor(value / 26.0) - 1;
+            int i下1桁 = (int)(value % 26.0);
+
+            string c上1桁 = "";
+            if (i上1桁 >= 0 )
+            {
+                ((char)(i上1桁 + 65)).ToString();
+            }
+            string c下1桁 = ((char)(i下1桁 + 65)).ToString();
+
+            return c上1桁 + c下1桁;
+        }
+
     }
 }
