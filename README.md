@@ -5,8 +5,10 @@
 １．DataGridViewをページング可能にする。
 
 ２．DataGridViewの表示内容をEXCELへ転送する。
+https://qiita.com/masayahak/items/a0389eb7a117f0a0b6c1
 
 ３．DataGridViewの幅に応じて付加情報列の表示／非表示を自動的に切り替える。
+https://qiita.com/masayahak/items/f2bc69f998fa1bb9f6eb
 
 
 
